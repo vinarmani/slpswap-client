@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const axios = require('axios')
 const PayPro = require('./lib/Paypro');
 const BCHD = require('./lib/BCHD');
 const BN = require('bignumber.js')
@@ -31,11 +32,11 @@ const BNToInt64BE = function (bn) {
   return Buffer.from(h.padStart(16, '0'), 'hex');
 }
 
-const wif = args['wif'] // 'L54moYHgnW82HWr5f1yvmYYbXRnEktz69929KcnNJ7YxNK7AWcXT'
+const wif = args['wif']
 if (!wif)
   throw new Error ('Must include wif as argument --wif=<WIF>')
-const amtToSend = args['amt']
-if (!amtToSend)
+let amtToSendStandard = args['amt']
+if (!amtToSendStandard)
   throw new Error ('Must include token amount as argument --amt=<AMOUNT_TO_SEND>')
 const useToken = args['send']
   if (!useToken)
@@ -43,18 +44,34 @@ const useToken = args['send']
 const swapToken = args['receive']
     if (!swapToken)
       throw new Error ('Must include token ID to receive as argument --send=<TOKENID_TO_RECEIVE>')
-// const swapToken = '4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf' // SPICE
-// const useToken = '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1' // HONK
-// const swapToken = '9fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11' // USDT
-const exchangeAddr = bchaddr.toCashAddress('simpleledger:qpren52c6y98kt9eenjhtqe437dkwlyfcqj4j3dnmn')
 
-const priv = PrivateKey.fromString(wif); // bitcoincash:qzhfgts6y6pnyhrfxas9yy7rheffggcjuca83998zk, simpleledger:qzhfgts6y6pnyhrfxas9yy7rheffggcjuc3u67s8ug
+const priv = PrivateKey.fromString(wif);
 const addr = priv.toAddress();
 const cashAddress = addr.toString();
 
 (async function(){
     try {
-    console.log(`Fetching UTXOs at ${cashAddress} for tokenID: ${useToken}...`)
+      console.log(`Fetching rates from ${PayPro.swapRateEndpoint}...`)
+    const ratesObj = (await axios.get(PayPro.swapRateEndpoint)).data
+    const exchangeAddr = bchaddr.toCashAddress(ratesObj.address)
+    const useTokenRateObj = ratesObj.tokens.find(t => t.tokenId == useToken)
+    if (!useTokenRateObj)
+      throw new Error ('The token you are sending is not valid with this SLP swap provider')
+    const swapTokenRateObj = ratesObj.tokens.find(t => t.tokenId == swapToken)
+    if (!swapTokenRateObj)
+      throw new Error ('The token you want to receive is not offered by this SLP swap provider')
+    // Convert amount to base units
+    const amtToSend = amtToSendStandard * (10 ** useTokenRateObj.decimals)
+    // Check that amount desired in token to be received is available
+    const paidTokenRate = Number(useTokenRateObj.buy)
+    const swapTokenRate = Number(swapTokenRateObj.sell)
+    // console.log('tokensPaidStandard', tokensPaidStandard)
+    const bchAmtPaid = amtToSendStandard * paidTokenRate
+    const amountToSwapStandard = (bchAmtPaid / swapTokenRate).toFixed(swapTokenRateObj.decimals)
+    if (amountToSwapStandard > swapTokenRateObj.available)
+      throw new Error (`The amount of ${useTokenRateObj.symbol} you are sending exceeds the amount of ${swapTokenRateObj.symbol} available to swap`)
+
+    console.log(`Fetching ${useTokenRateObj.symbol} UTXOs at ${cashAddress}...`)
     const rawUtxos = await BCHD.getUtxosByAddress(cashAddress)
     const utxos = []
     let useTokenTotal = 0
@@ -78,7 +95,8 @@ const cashAddress = addr.toString();
 
     // Create Payment Transaction
     if (amtToSend > useTokenTotal)
-      throw new Error (`Insufficient tokens to complete send. Only ${useTokenTotal} units available`)
+      throw new Error (`Insufficient tokens to complete send. Only ${useTokenTotal * (10 ** (-1 * useTokenRateObj.decimals))} ${useTokenRateObj.symbol} available`)
+    console.log(`Swapping ${amtToSendStandard} ${useTokenRateObj.symbol} for ${amountToSwapStandard} ${swapTokenRateObj.symbol}...`)
     console.log('Constructing SLP Swap transaction...')
     const bnAmount = new BN(amtToSend) // Amount to send
     const tokenChange = new BN(useTokenTotal - amtToSend)
@@ -114,7 +132,7 @@ const cashAddress = addr.toString();
 
     const hex = tx.toString()
     // console.log(tx.toObject())
-    console.log('Sending to SLP Swap API:', hex)
+    console.log('Sending to SLP Swap API (Postage Endpoint):', hex)
     
     // Broadcast tx
     const txIds = await PayPro.broadcastPostOfficeTx(
