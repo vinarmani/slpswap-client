@@ -1,0 +1,25 @@
+{
+  "name": "slpswap-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "slpswap": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bchaddrjs-slp": "^0.2.14",
+    "bignumber.js": "^9.0.1",
+    "bitcore-lib-cash": "^8.25.8",
+    "bitcore-payment-protocol": "github:vinarmani/bitcore-payment-protocol#new_version",
+    "buffer-reverse": "^1.0.1",
+    "dotenv": "^8.2.0",
+    "grpc-bchrpc-node": "^0.15.0",
+    "minimist": "^1.2.5"
+  }
+}
