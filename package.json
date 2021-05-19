@@ -18,7 +18,6 @@
     "bitcore-lib-cash": "^8.25.8",
     "bitcore-payment-protocol": "github:vinarmani/bitcore-payment-protocol#new_version",
     "buffer-reverse": "^1.0.1",
-    "dotenv": "^8.2.0",
     "grpc-bchrpc-node": "^0.15.0",
     "minimist": "^1.2.5"
   }

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
 const PayPro = require('./lib/Paypro');
 const BCHD = require('./lib/BCHD');
 const BN = require('bignumber.js')
