@@ -96,7 +96,7 @@ const cashAddress = addr.toString();
     // Create Payment Transaction
     if (amtToSend > useTokenTotal)
       throw new Error (`Insufficient tokens to complete send. Only ${useTokenTotal * (10 ** (-1 * useTokenRateObj.decimals))} ${useTokenRateObj.symbol} available`)
-    console.log(`Swapping ${amtToSendStandard} ${useTokenRateObj.symbol} for ${amountToSwapStandard} ${swapTokenRateObj.symbol}...`)
+    console.log(`Swapping ${amtToSendStandard} ${useTokenRateObj.symbol} for ${amountToSwapStandard} (minus any postage cost) ${swapTokenRateObj.symbol}...`)
     console.log('Constructing SLP Swap transaction...')
     const bnAmount = new BN(amtToSend) // Amount to send
     const tokenChange = new BN(useTokenTotal - amtToSend)
