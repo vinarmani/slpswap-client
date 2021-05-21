@@ -33,7 +33,7 @@ slpswap --wif=<PRIVATE_KEY_FOR_ADDRESS_HOLDING_SLP_TOKENS> --amt=<AMOUNT_TO_SEND
 ```
 
 
-Sample command to send 50.5 SPICE using Postage PRotocol
+Sample command to send 50.5 SPICE using Postage Protocol
 ```
 slpswap --wif=L4rnvJMVVPQP8J8xo7kT3YARYt9nwLrWQybkNXzCQnKp6Wj3WrrX --amt=50.5 --send=4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf --to=simpleledger:qzhfgts6y6pnyhrfxas9yy7rheffggcjuc3u67s8ug --postage=true
 ```
