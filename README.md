@@ -4,6 +4,10 @@
 
 Retrieve current rates and available token information from the following endpoint: https://api.slpswap.com/rates
 
+## View the specification
+
+The SLP Swap specification can be found [here](https://github.com/vinarmani/slpswap-specification/blob/main/slpswap-specification.md).
+
 ### Install on Linux
 ```
 git clone https://github.com/vinarmani/slpswap-client.git
