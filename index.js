@@ -150,8 +150,8 @@ const cashAddress = addr.toString();
     let hex = tx.toString()
 
     if (postage) {
-      // get tx size
-      const byteCount = hex.length / 2
+      // get tx size with signatures
+      const byteCount = tx.toBuffer().length + (110 * tx.inputs.length)
       // Calculate number of Stamps Needed
       const outputSum = tx.outputs.reduce(function(accumulator, output){
         return accumulator + output.satoshis
@@ -162,7 +162,7 @@ const cashAddress = addr.toString();
       }, 0)
       const stampsNeeded = Math.ceil((outputSum + byteCount - inputSum) / ratesObj.weight)
       console.log(`Paying for ${stampsNeeded} stamps`)
-      const stampsBnAmount = new BN(stampsNeeded * (useTokenRateObj.rate * (10 ** useTokenRateObj.decimals)))
+      const stampsBnAmount = new BN(stampsNeeded * (useTokenRateObj.rate))
       tokenChange = tokenChange.minus(stampsBnAmount)
       if (tokenChange.lt(0))
         throw new Error ('Not enough funds available to cover postage')
